@@ -1,0 +1,18 @@
+﻿<Window x:Class="TrafficWpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TrafficWpf"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Canvas Name="MainCanvas" HorizontalAlignment="Left" Height="420" VerticalAlignment="Top" Width="792" MouseLeftButtonDown="MainCanvas_LeftMouseDown" MouseRightButtonDown="MainCanvas_MouseRightButtonDown" MouseMove="MainCanvas_MouseMove" Background="SlateGray">
+            <Button Name="RoadButton" Content="R" Height="48" Canvas.Top="10" Width="48" Canvas.Left="10" FontSize="32" Click="RoadButton_Click" IsEnabled="False"/>
+            <Button Name="TestButton" Content="T" Height="48" Canvas.Top="10" Width="48" Canvas.Left="63" FontSize="32" Click="TestButton_Click"/>
+            <Button Name="SourceButton" Content="S" Height="48" Canvas.Top="10" Width="48" Canvas.Left="116" FontSize="32" Click="SourceButton_Click"/>
+            <Button Name="DestinationButton" Content="D" Height="48" Canvas.Top="10" Width="48" Canvas.Left="169" FontSize="32" Click="DestinationButton_Click"/>
+        </Canvas>
+
+    </Grid>
+</Window>
