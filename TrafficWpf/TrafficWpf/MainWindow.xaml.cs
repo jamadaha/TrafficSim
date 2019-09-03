@@ -21,7 +21,6 @@ namespace TrafficWpf
     public partial class MainWindow : Window
     {
         Point startPos = new Point(-1, -1);
-        public List<Road> roads = new List<Road>();
         List<Source> sources = new List<Source>();
         List<Destination> destinations = new List<Destination>();
         Line currentRoad;
@@ -49,6 +48,10 @@ namespace TrafficWpf
             {
                 BuildDestination(e);
             }
+            foreach(Source source in sources)
+            {
+                source.FindRoute();
+            }
         }
 
         void StartBuildingRoad(MouseButtonEventArgs _e)
@@ -64,7 +67,7 @@ namespace TrafficWpf
             double width = 10;
             currentRoad.StrokeThickness = width;
 
-            // See if there are other roads
+            // See if there are other StaticVar.roads
             Road closestRoad = GetClosestRoad(new Point(currentRoad.X1, currentRoad.Y2));
             double distanceToClosestRoad = -1;
             if (closestRoad != null)
@@ -93,7 +96,7 @@ namespace TrafficWpf
         {
             startPos = new Point(-1, -1);
             Road road = new Road(currentRoad, currentRoad.StrokeThickness);
-            roads.Add(road);
+            StaticVar.roads.Add(road);
 
             Destination closestDestination = GetClosestDestination(new Point(_e.GetPosition(this).X, _e.GetPosition(this).Y));
             if (closestDestination != null)
@@ -160,9 +163,9 @@ namespace TrafficWpf
 
         void ColorRoad(MouseButtonEventArgs _e)
         {
-            if (roads.Count > 0)
+            if (StaticVar.roads.Count > 0)
             {
-                foreach (Road road in roads)
+                foreach (Road road in StaticVar.roads)
                 {
                     Point closestPoint = pDistance(_e.GetPosition(this).X, _e.GetPosition(this).Y, road.line.X1, road.line.Y1, road.line.X2, road.line.Y2);
                     if (Distance(_e.GetPosition(this), closestPoint) < road.width)
@@ -196,9 +199,9 @@ namespace TrafficWpf
                     return;
                 }
 
-                if (roads.Count > 0)
+                if (StaticVar.roads.Count > 0)
                 {
-                    foreach(Road road in roads)
+                    foreach(Road road in StaticVar.roads)
                     {
                         Point closestPoint = pDistance(e.GetPosition(this).X, e.GetPosition(this).Y, road.line.X1, road.line.Y1, road.line.X2, road.line.Y2);
                         if (Distance(e.GetPosition(this), closestPoint) < road.width)
@@ -257,9 +260,9 @@ namespace TrafficWpf
 
         Road GetClosestRoad(Point _point)
         {
-            if (roads.Count > 0)
+            if (StaticVar.roads.Count > 0)
             {
-                foreach (Road road in roads)
+                foreach (Road road in StaticVar.roads)
                 {
                     Point closestPoint = pDistance(_point.X, _point.Y, road.line.X1, road.line.Y1, road.line.X2, road.line.Y2);
                     if (Distance(new Point(_point.X, _point.Y), closestPoint) < road.width)
@@ -356,7 +359,7 @@ namespace TrafficWpf
 
         void ResetRoadColors()
         {
-            foreach(Road road in roads)
+            foreach(Road road in StaticVar.roads)
             {
                 road.line.Stroke = new SolidColorBrush(Colors.White);
             }

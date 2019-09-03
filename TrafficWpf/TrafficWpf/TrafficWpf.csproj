@@ -57,6 +57,7 @@
     </ApplicationDefinition>
     <Compile Include="Destination.cs" />
     <Compile Include="Road.cs" />
+    <Compile Include="StaticVar.cs" />
     <Compile Include="Source.cs" />
     <Compile Include="Unit.cs" />
     <Page Include="MainWindow.xaml">

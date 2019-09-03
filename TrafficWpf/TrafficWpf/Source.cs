@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace TrafficWpf
@@ -19,12 +20,15 @@ namespace TrafficWpf
 
         public void SpawnUnit()
         {
-            Unit newUnit = new Unit();
+            //Unit newUnit = new Unit();
         }
 
-        void FindRoute()
+        public void FindRoute()
         {
-
+            foreach (Road road in connectedRoads)
+            {
+                road.line.Fill = new SolidColorBrush(Colors.Red);
+            }
         }
     }
 }
