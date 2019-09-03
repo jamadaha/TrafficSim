@@ -10,6 +10,5 @@ namespace TrafficWpf
 {
     public static class StaticVar
     {
-        public static List<Road> roads = new List<Road>();
     }
 }

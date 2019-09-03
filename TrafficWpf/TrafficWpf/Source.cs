@@ -18,16 +18,42 @@ namespace TrafficWpf
             ellipse = _ellipse;
         }
 
-        public void SpawnUnit()
+        List<Road[]> paths = new List<Road[]>();
+        public Road[] FindRoute()
         {
-            //Unit newUnit = new Unit();
+            paths = new List<Road[]>();
+            Console.WriteLine("Seaching " + connectedRoads.Count + " roads");
+            foreach(Road road in connectedRoads)
+            {
+                SearchConnectedRoads(road, new List<Road>());
+            }
+            if (paths.Count > 0)
+            {
+                int minLength = paths.Min(y => y.Length);
+                Road[] shortestPath = paths.First(x => x.Length == minLength);
+                return shortestPath;
+            }
+            else return null;
         }
 
-        public void FindRoute()
+        void SearchConnectedRoads(Road _node,List<Road> _traversedRoads)
         {
-            foreach (Road road in connectedRoads)
+            List<Road> traversedRoads = new List<Road>();
+            foreach (Road road in _traversedRoads) traversedRoads.Add(road);
+            traversedRoads.Add(_node);
+
+            if (_node.connectedDestination != null)
             {
-                road.line.Fill = new SolidColorBrush(Colors.Red);
+                paths.Add(traversedRoads.ToArray());
+                return;
+            }
+
+            foreach (Road road in _node.connectedRoads)
+            {
+                if (!traversedRoads.Contains(road))
+                {
+                    SearchConnectedRoads(road, traversedRoads);
+                }
             }
         }
     }

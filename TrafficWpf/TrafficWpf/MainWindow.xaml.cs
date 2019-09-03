@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace TrafficWpf
 {
@@ -21,14 +23,20 @@ namespace TrafficWpf
     public partial class MainWindow : Window
     {
         Point startPos = new Point(-1, -1);
+        List<Road> roads = new List<Road>();
         List<Source> sources = new List<Source>();
         List<Destination> destinations = new List<Destination>();
+        List<Unit> units = new List<Unit>();
         Line currentRoad;
         Road startRoad;
         Source startSource;
+
+        static DispatcherTimer timer = new DispatcherTimer();
+
         public MainWindow()
         {
             InitializeComponent();
+            SetTimer();
         }
 
         private void MainCanvas_LeftMouseDown(object sender, MouseButtonEventArgs e)
@@ -40,7 +48,8 @@ namespace TrafficWpf
             }
             else if (!TestButton.IsEnabled)
             {
-                ColorRoad(e);
+                //ColorRoad(e);
+                SpawnUnit();
             } else if (!SourceButton.IsEnabled)
             {
                 BuildSource(e);
@@ -54,12 +63,47 @@ namespace TrafficWpf
             }
         }
 
+        void SetTimer()
+        {
+            timer.Interval = TimeSpan.FromMilliseconds(1);
+            timer.Tick += OnTimedEvent;
+            timer.Start();
+        }
+
+        void OnTimedEvent(object sender, EventArgs e)
+        {
+            if (units.Count > 0)
+            {
+                foreach(Unit unit in units)
+                {
+                    unit.Move();
+                }
+            }
+        }
+
+        private void SpawnUnit()
+        {
+            foreach(Source source in sources)
+            {
+                Road[] route = source.FindRoute();
+                Ellipse ellipse = new Ellipse();
+                ellipse.Width = 20;
+                ellipse.Height = 20;
+                ellipse.Margin = new Thickness(source.ellipse.Margin.Left + source.ellipse.Width / 2 - ellipse.Width / 2, source.ellipse.Margin.Top + source.ellipse.Height / 2 - ellipse.Height / 2, 0, 0);
+                
+                ellipse.Fill = new SolidColorBrush(Colors.Crimson);
+                MainCanvas.Children.Add(ellipse);
+                Unit unit = new Unit(route, ellipse);
+                units.Add(unit);
+            }
+        }
+
         void StartBuildingRoad(MouseButtonEventArgs _e)
         {
             startPos = _e.GetPosition(this);
             currentRoad = new Line();
             MainCanvas.Children.Add(currentRoad);
-            currentRoad.Stroke = new SolidColorBrush(Colors.White);
+            currentRoad.Stroke = new SolidColorBrush(Colors.Cyan);
             currentRoad.X1 = startPos.X;
             currentRoad.Y1 = startPos.Y;
             currentRoad.X2 = startPos.X;
@@ -67,7 +111,17 @@ namespace TrafficWpf
             double width = 10;
             currentRoad.StrokeThickness = width;
 
-            // See if there are other StaticVar.roads
+            Source closestSource = GetClosestSource(new Point(_e.GetPosition(this).X, _e.GetPosition(this).Y));
+            if (closestSource != null)
+            {
+                startRoad = null;
+                startSource = closestSource;
+                currentRoad.X1 = closestSource.ellipse.Margin.Left + closestSource.ellipse.Width / 2;
+                currentRoad.Y1 = closestSource.ellipse.Margin.Top + closestSource.ellipse.Height / 2;
+                return;
+            }
+
+            // See if there are other roads
             Road closestRoad = GetClosestRoad(new Point(currentRoad.X1, currentRoad.Y2));
             double distanceToClosestRoad = -1;
             if (closestRoad != null)
@@ -82,21 +136,14 @@ namespace TrafficWpf
                     currentRoad.Y1 = closestPoint.Y;
                 }
             }
-            Source closestSource = GetClosestSource(new Point(_e.GetPosition(this).X, _e.GetPosition(this).Y));
-            if (closestSource != null)
-            {
-                startRoad = null;
-                startSource = closestSource;
-                currentRoad.X1 = closestSource.ellipse.Margin.Left + closestSource.ellipse.Width / 2;
-                currentRoad.Y1 = closestSource.ellipse.Margin.Top + closestSource.ellipse.Height / 2;
-            } 
+            
         }
 
         void FinishBuildingRoad(MouseButtonEventArgs _e)
         {
             startPos = new Point(-1, -1);
             Road road = new Road(currentRoad, currentRoad.StrokeThickness);
-            StaticVar.roads.Add(road);
+            roads.Add(road);
 
             Destination closestDestination = GetClosestDestination(new Point(_e.GetPosition(this).X, _e.GetPosition(this).Y));
             if (closestDestination != null)
@@ -106,8 +153,11 @@ namespace TrafficWpf
                 if (startRoad != null)
                 {
                     startRoad.connectedRoads.Add(road);
-                } else if (startSource != null)
+                    road.connectedRoads.Add(startRoad);
+                }
+                else if (startSource != null)
                 {
+                    startSource.connectedRoads.Add(road);
                     road.connectedSource = startSource;
                 }
                 currentRoad = null;
@@ -132,6 +182,9 @@ namespace TrafficWpf
                     road.connectedSource = startSource;
                 }
             }
+
+            
+
             currentRoad = null;
             startRoad = null;
             startSource = null;
@@ -163,16 +216,18 @@ namespace TrafficWpf
 
         void ColorRoad(MouseButtonEventArgs _e)
         {
-            if (StaticVar.roads.Count > 0)
+            if (roads.Count > 0)
             {
-                foreach (Road road in StaticVar.roads)
+                foreach (Road road in roads)
                 {
                     Point closestPoint = pDistance(_e.GetPosition(this).X, _e.GetPosition(this).Y, road.line.X1, road.line.Y1, road.line.X2, road.line.Y2);
                     if (Distance(_e.GetPosition(this), closestPoint) < road.width)
                     {
+                        
                         List<Road> blankList = new List<Road>();
                         ResetRoadColors();
                         ColorConnectedRoads(road, blankList, 0);
+                        
                         return;
                     }
                 }
@@ -199,9 +254,9 @@ namespace TrafficWpf
                     return;
                 }
 
-                if (StaticVar.roads.Count > 0)
+                if (roads.Count > 0)
                 {
-                    foreach(Road road in StaticVar.roads)
+                    foreach(Road road in roads)
                     {
                         Point closestPoint = pDistance(e.GetPosition(this).X, e.GetPosition(this).Y, road.line.X1, road.line.Y1, road.line.X2, road.line.Y2);
                         if (Distance(e.GetPosition(this), closestPoint) < road.width)
@@ -227,7 +282,7 @@ namespace TrafficWpf
                 Rectangle rectangle = destination.rectangle;
                 double xPos = rectangle.Margin.Left + rectangle.Width / 2;
                 double yPos = rectangle.Margin.Top + rectangle.Height / 2;
-                if (distance == -1) distance = rectangle.Width;
+                if (distance == -1) distance = rectangle.Width * 2;
                 double tempDistance = Distance(new Point(xPos, yPos), _point);
                 if (tempDistance < distance)
                 {
@@ -247,7 +302,7 @@ namespace TrafficWpf
                 Ellipse ellipse = source.ellipse;
                 double xPos = ellipse.Margin.Left + source.ellipse.Width / 2;
                 double yPos = ellipse.Margin.Top + source.ellipse.Height / 2;
-                if (distance == -1) distance = ellipse.Width;
+                if (distance == -1) distance = ellipse.Width * 2;
                 double tempDistance = Distance(new Point(xPos, yPos), _point);
                 if (tempDistance < distance)
                 {
@@ -260,9 +315,9 @@ namespace TrafficWpf
 
         Road GetClosestRoad(Point _point)
         {
-            if (StaticVar.roads.Count > 0)
+            if (roads.Count > 0)
             {
-                foreach (Road road in StaticVar.roads)
+                foreach (Road road in roads)
                 {
                     Point closestPoint = pDistance(_point.X, _point.Y, road.line.X1, road.line.Y1, road.line.X2, road.line.Y2);
                     if (Distance(new Point(_point.X, _point.Y), closestPoint) < road.width)
@@ -329,6 +384,8 @@ namespace TrafficWpf
             SourceButton.IsEnabled = true;
             DestinationButton.IsEnabled = true;
             ResetRoadColors();
+            startPos = new Point(-1, -1);
+            if (currentRoad != null) MainCanvas.Children.Remove(currentRoad);
         }
 
         private void RoadButton_Click(object sender, RoutedEventArgs e)
@@ -341,8 +398,6 @@ namespace TrafficWpf
         {
             ResetButtons();
             TestButton.IsEnabled = false;
-            startPos = new Point(-1, -1);
-            if (currentRoad != null) MainCanvas.Children.Remove(currentRoad);
         }
 
         private void SourceButton_Click(object sender, RoutedEventArgs e)
@@ -359,9 +414,9 @@ namespace TrafficWpf
 
         void ResetRoadColors()
         {
-            foreach(Road road in StaticVar.roads)
+            foreach(Road road in roads)
             {
-                road.line.Stroke = new SolidColorBrush(Colors.White);
+                road.line.Stroke = new SolidColorBrush(Colors.Cyan);
             }
         }
 
@@ -397,14 +452,14 @@ namespace TrafficWpf
             double saturation = 100;
             double value = 70;
 
-
             SolidColorBrush solidColorBrush = new SolidColorBrush(ColorFromHSV(hue, saturation, value));
             
 
 
             _roadNode.line.Stroke = solidColorBrush;
             //MainCanvas.Children.Remove(_roadNode.line);
-            List<Road> checkedRoads = _checkedRoads;
+            List<Road> checkedRoads = new List<Road>();
+            foreach (Road road in _checkedRoads) checkedRoads.Add(road);
             checkedRoads.Add(_roadNode);
             int newDepth = _depth + 1;
             foreach(Road road in _roadNode.connectedRoads)
