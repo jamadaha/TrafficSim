@@ -22,7 +22,6 @@ namespace TrafficWpf
         public Road[] FindRoute()
         {
             paths = new List<Road[]>();
-            Console.WriteLine("Seaching " + connectedRoads.Count + " roads");
             foreach(Road road in connectedRoads)
             {
                 SearchConnectedRoads(road, new List<Road>());

@@ -18,29 +18,46 @@ namespace TrafficWpf
             ellipse = _ellipse;
         }
 
-        public void Move()
+        public bool Move()
         {
-            double m = ((route[currentIndex].line.Y2 - ellipse.Margin.Top - ellipse.Height / 2) / (route[currentIndex].line.X2 - ellipse.Margin.Left - ellipse.Width / 2));
+            Point targetPos;
+            if (currentIndex == route.Length - 1)
+            {
+                targetPos = new Point(route[currentIndex].connectedDestination.rectangle.Margin.Left + route[currentIndex].connectedDestination.rectangle.Width / 2, route[currentIndex].connectedDestination.rectangle.Margin.Top + route[currentIndex].connectedDestination.rectangle.Height / 2);
+            } else
+            {
+                targetPos = new Point(route[currentIndex + 1].line.X1, route[currentIndex + 1].line.Y1);
+            }
 
-            double xMovement = 0.1;
+
+            double m = ((targetPos.Y - ellipse.Margin.Top - ellipse.Height / 2) / (targetPos.X - ellipse.Margin.Left - ellipse.Width / 2));
+
+            double xMovement = 1;
 
             //ellipse.Margin = new Thickness(route[currentIndex].line.X1 - ellipse.Width / 2, route[currentIndex].line.Y1 - ellipse.Height / 2, 0, 0);
 
-            bool xFlip; 
-            if (route[currentIndex].line.X2 > ellipse.Margin.Left)
+            bool xFlip = false; 
+            if (targetPos.X > ellipse.Margin.Left + ellipse.Width / 2)
             {
+                //ellipse.Margin = new Thickness(route[currentIndex].line.X1 - ellipse.Width / 2, route[currentIndex].line.Y1 - ellipse.Height / 2, 0, 0);
                 xFlip = (ellipse.Margin.Left + xMovement >= route[currentIndex].line.X2 - ellipse.Width / 2);
-            } else
-            {
-                xMovement *= -1;
-                xFlip = (ellipse.Margin.Left + xMovement <= route[currentIndex].line.X2 - ellipse.Width / 2);
             }
-            bool yFlip;
-            if (route[currentIndex].line.Y2 < ellipse.Margin.Top)
+            if (targetPos.X < ellipse.Margin.Left + ellipse.Width / 2)
             {
+                //
+                xMovement *= -1;
+                Console.WriteLine((ellipse.Margin.Left + xMovement) - (route[currentIndex].line.X2 - ellipse.Width / 2));
+                xFlip = ((ellipse.Margin.Left + xMovement) - (route[currentIndex].line.X2 - ellipse.Width / 2) <= 0);
+            }
+
+
+            bool yFlip = false;
+            if (targetPos.Y < ellipse.Margin.Top + ellipse.Height / 2)
+            {
+                
                 yFlip = (ellipse.Margin.Top + xMovement * m <= route[currentIndex].line.Y2 - ellipse.Height / 2);
             }
-            else
+            if (targetPos.Y > ellipse.Margin.Top + ellipse.Height / 2)
             {
                 yFlip = (ellipse.Margin.Top + xMovement * m >= route[currentIndex].line.Y2 - ellipse.Height / 2);
             }
@@ -48,14 +65,23 @@ namespace TrafficWpf
 
             if (xFlip || yFlip)
             {
-                if (currentIndex == route.Length - 1) return;
+                if (currentIndex == route.Length - 1)
+                {
+                    StaticVar.mainCanvas.Children.Remove(ellipse);
+                    return false;
+                }
                 currentIndex++;
                 
-                ellipse.Margin = new Thickness(route[currentIndex].line.X1 - ellipse.Width / 2, route[currentIndex].line.Y1 - ellipse.Height / 2, 0, 0);
-                return;
+                ellipse.Margin = new Thickness(targetPos.X - ellipse.Width / 2, targetPos.Y - ellipse.Height / 2, 0, 0);
+                return true;
             }
-            
-            ellipse.Margin = new Thickness(ellipse.Margin.Left + xMovement, ellipse.Margin.Top + xMovement * m, 0, 0);
+            Console.WriteLine(m);
+
+            Vector vector = new Vector(xMovement, xMovement * m);
+            vector.Normalize();
+
+            ellipse.Margin = new Thickness(ellipse.Margin.Left + vector.X, ellipse.Margin.Top + vector.Y, 0, 0);
+            return true;
         }
     }
 }

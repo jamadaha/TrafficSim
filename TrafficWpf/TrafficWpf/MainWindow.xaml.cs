@@ -37,6 +37,7 @@ namespace TrafficWpf
         {
             InitializeComponent();
             SetTimer();
+            StaticVar.mainCanvas = MainCanvas;
         }
 
         private void MainCanvas_LeftMouseDown(object sender, MouseButtonEventArgs e)
@@ -74,9 +75,15 @@ namespace TrafficWpf
         {
             if (units.Count > 0)
             {
+                List<Unit> unitsToRemove = new List<Unit>();
                 foreach(Unit unit in units)
                 {
-                    unit.Move();
+                    bool moveCheck = unit.Move();
+                    if (!moveCheck) unitsToRemove.Add(unit);
+                }
+                foreach(Unit unit in unitsToRemove)
+                {
+                    units.Remove(unit);
                 }
             }
         }
