@@ -15,9 +15,9 @@ namespace TrafficWpf
         public int depth { get; set; }
 
         public List<Road> connectedRoads = new List<Road>();
+        public List<Unit> unitsOnRoad = new List<Unit>();
         public Source connectedSource { get; set; }
         public Destination connectedDestination { get; set; }
-        public List<Unit> unitsOnRoad = new List<Unit>();
 
         public Road (Line _line, double _width)
         {

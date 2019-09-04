@@ -78,7 +78,7 @@ namespace TrafficWpf
                 List<Unit> unitsToRemove = new List<Unit>();
                 foreach(Unit unit in units)
                 {
-                    bool moveCheck = unit.Move();
+                    bool moveCheck = unit.Move(units.ToArray());
                     if (!moveCheck) unitsToRemove.Add(unit);
                 }
                 foreach(Unit unit in unitsToRemove)
@@ -310,7 +310,7 @@ namespace TrafficWpf
                 Ellipse ellipse = source.ellipse;
                 double xPos = ellipse.Margin.Left + source.ellipse.Width / 2;
                 double yPos = ellipse.Margin.Top + source.ellipse.Height / 2;
-                if (distance == -1) distance = ellipse.Width * 2;
+                if (distance == -1) distance = ellipse.Width / 2;
                 double tempDistance = Distance(new Point(xPos, yPos), _point);
                 if (tempDistance < distance)
                 {

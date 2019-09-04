@@ -8,7 +8,7 @@ namespace TrafficWpf
     public class Unit
     {
         public Road[] route { get; set; }
-        public Point position { get; set; }
+        public Road currentRoad { get; set; }
         public Ellipse ellipse { get; set; }
         int currentIndex = 0;
 
@@ -16,9 +16,11 @@ namespace TrafficWpf
         {
             route = _route;
             ellipse = _ellipse;
+            route[0].unitsOnRoad.Add(this);
+            currentRoad = route[0];
         }
 
-        public bool Move()
+        public bool Move(Unit[] _units)
         {
             Point targetPos;
             if (currentIndex == route.Length - 1)
@@ -34,6 +36,8 @@ namespace TrafficWpf
                     targetPos = new Point(route[currentIndex + 1].line.X1, route[currentIndex + 1].line.Y1);
                 }
             }
+
+            double distanceToTargetPos = Math.Sqrt(Math.Pow((targetPos.X - ellipse.Margin.Left), 2) + Math.Pow((targetPos.Y - ellipse.Margin.Top), 2));
 
             double m = ((targetPos.Y - ellipse.Margin.Top - ellipse.Height / 2) / (targetPos.X - ellipse.Margin.Left - ellipse.Width / 2));
 
@@ -74,8 +78,10 @@ namespace TrafficWpf
                     StaticVar.mainCanvas.Children.Remove(ellipse);
                     return false;
                 }
+                route[currentIndex].unitsOnRoad.Remove(this);
                 currentIndex++;
-                
+                route[currentIndex].unitsOnRoad.Add(this);
+                currentRoad = route[currentIndex];
                 ellipse.Margin = new Thickness(targetPos.X - ellipse.Width / 2, targetPos.Y - ellipse.Height / 2, 0, 0);
                 return true;
             }
@@ -83,7 +89,33 @@ namespace TrafficWpf
             Vector vector = new Vector(xMovement, xMovement * m);
             vector.Normalize();
 
-            ellipse.Margin = new Thickness(ellipse.Margin.Left + vector.X, ellipse.Margin.Top + vector.Y, 0, 0);
+            double xPos = ellipse.Margin.Left + vector.X;
+            double yPos = ellipse.Margin.Top + vector.Y;
+
+            for (int i = 0; i < _units.Length; i++)
+            {
+                if (_units[i] != this)
+                {
+                    double xDiff = _units[i].ellipse.Margin.Left - xPos;
+                    double yDiff = _units[i].ellipse.Margin.Top - yPos;
+                    double distance = Math.Sqrt(xDiff * xDiff + yDiff * yDiff);
+
+                    if (_units[i].currentRoad == currentRoad)
+                    {
+                        if (distance < ellipse.Height / 2 + _units[i].ellipse.Height / 2) return true;
+                    }
+
+                    if (currentIndex != route.Length - 1)
+                    {
+                        if (_units[i].currentRoad == route[currentIndex + 1])
+                        {
+                            if (distance < ellipse.Height + _units[i].ellipse.Height / 2) return true;
+                        }
+                    }
+                }
+            }
+
+            ellipse.Margin = new Thickness(xPos, yPos, 0, 0);
             return true;
         }
 
@@ -124,6 +156,8 @@ namespace TrafficWpf
             var dy = y - yy;
             return Math.Sqrt(dx * dx + dy * dy);
         }
+
+
 
     }
 }
