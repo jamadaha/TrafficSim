@@ -246,6 +246,7 @@ namespace TrafficWpf
             startPos = new Point(-1, -1);
             MainCanvas.Children.Remove(currentRoad);
             startRoad = null;
+            startSource = null;
         }
 
         private void MainCanvas_MouseMove(object sender, MouseEventArgs e)

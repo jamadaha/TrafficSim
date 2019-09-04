@@ -22,16 +22,22 @@ namespace TrafficWpf
         public Road[] FindRoute()
         {
             paths = new List<Road[]>();
-            foreach(Road road in connectedRoads)
+            foreach (Road road in connectedRoads)
             {
                 SearchConnectedRoads(road, new List<Road>());
             }
+            
             if (paths.Count > 0)
             {
+                /*
                 int minLength = paths.Min(y => y.Length);
                 Road[] shortestPath = paths.First(x => x.Length == minLength);
                 return shortestPath;
+                */
+                return paths.ElementAt(StaticVar.random.Next(paths.Count));
             }
+            
+
             else return null;
         }
 

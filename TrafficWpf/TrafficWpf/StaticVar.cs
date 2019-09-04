@@ -12,5 +12,6 @@ namespace TrafficWpf
     public static class StaticVar
     {
         public static Canvas mainCanvas { get; set; }
+        public static Random random = new Random();
     }
 }

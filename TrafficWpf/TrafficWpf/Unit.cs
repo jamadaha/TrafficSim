@@ -5,7 +5,7 @@ using System.Windows.Shapes;
 
 namespace TrafficWpf
 {
-    class Unit
+    public class Unit
     {
         public Road[] route { get; set; }
         public Point position { get; set; }

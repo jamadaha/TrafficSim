@@ -17,6 +17,7 @@ namespace TrafficWpf
         public List<Road> connectedRoads = new List<Road>();
         public Source connectedSource { get; set; }
         public Destination connectedDestination { get; set; }
+        public List<Unit> unitsOnRoad = new List<Unit>();
 
         public Road (Line _line, double _width)
         {
