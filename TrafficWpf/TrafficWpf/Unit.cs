@@ -26,7 +26,10 @@ namespace TrafficWpf
                 targetPos = new Point(route[currentIndex].connectedDestination.rectangle.Margin.Left + route[currentIndex].connectedDestination.rectangle.Width / 2, route[currentIndex].connectedDestination.rectangle.Margin.Top + route[currentIndex].connectedDestination.rectangle.Height / 2);
             } else
             {
-                targetPos = new Point(route[currentIndex + 1].line.X1, route[currentIndex + 1].line.Y1);
+                if (route[currentIndex].line.X2 == route[currentIndex + 1].line.X1 && route[currentIndex].line.Y2 == route[currentIndex + 1].line.Y1)
+                    targetPos = new Point(route[currentIndex + 1].line.X1, route[currentIndex + 1].line.Y1);
+                else
+                    targetPos = new Point(route[currentIndex].line.X2, route[currentIndex].line.Y2);
             }
 
 
@@ -46,7 +49,6 @@ namespace TrafficWpf
             {
                 //
                 xMovement *= -1;
-                Console.WriteLine((ellipse.Margin.Left + xMovement) - (route[currentIndex].line.X2 - ellipse.Width / 2));
                 xFlip = ((ellipse.Margin.Left + xMovement) - (route[currentIndex].line.X2 - ellipse.Width / 2) <= 0);
             }
 
@@ -75,7 +77,6 @@ namespace TrafficWpf
                 ellipse.Margin = new Thickness(targetPos.X - ellipse.Width / 2, targetPos.Y - ellipse.Height / 2, 0, 0);
                 return true;
             }
-            Console.WriteLine(m);
 
             Vector vector = new Vector(xMovement, xMovement * m);
             vector.Normalize();
