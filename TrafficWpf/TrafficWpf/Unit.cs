@@ -26,12 +26,14 @@ namespace TrafficWpf
                 targetPos = new Point(route[currentIndex].connectedDestination.rectangle.Margin.Left + route[currentIndex].connectedDestination.rectangle.Width / 2, route[currentIndex].connectedDestination.rectangle.Margin.Top + route[currentIndex].connectedDestination.rectangle.Height / 2);
             } else
             {
-                if (route[currentIndex].line.X2 == route[currentIndex + 1].line.X1 && route[currentIndex].line.Y2 == route[currentIndex + 1].line.Y1)
-                    targetPos = new Point(route[currentIndex + 1].line.X1, route[currentIndex + 1].line.Y1);
-                else
+                if (pDistance(route[currentIndex].line.X2, route[currentIndex].line.Y2, route[currentIndex + 1].line.X1, route[currentIndex + 1].line.Y1, route[currentIndex + 1].line.X2, route[currentIndex + 1].line.Y2) < 1)
+                {
                     targetPos = new Point(route[currentIndex].line.X2, route[currentIndex].line.Y2);
+                } else
+                {
+                    targetPos = new Point(route[currentIndex + 1].line.X1, route[currentIndex + 1].line.Y1);
+                }
             }
-
 
             double m = ((targetPos.Y - ellipse.Margin.Top - ellipse.Height / 2) / (targetPos.X - ellipse.Margin.Left - ellipse.Width / 2));
 
@@ -84,5 +86,44 @@ namespace TrafficWpf
             ellipse.Margin = new Thickness(ellipse.Margin.Left + vector.X, ellipse.Margin.Top + vector.Y, 0, 0);
             return true;
         }
+
+        double pDistance(double x, double y, double x1, double y1, double x2, double y2)
+        {
+
+            double A = x - x1;
+            double B = y - y1;
+            double C = x2 - x1;
+            double D = y2 - y1;
+
+            var dot = A * C + B * D;
+            var len_sq = C * C + D * D;
+            double param = -1;
+            if (len_sq != 0) //in case of 0 length line
+                param = dot / len_sq;
+
+            double xx;
+            double yy;
+
+            if (param < 0)
+            {
+                xx = x1;
+                yy = y1;
+            }
+            else if (param > 1)
+            {
+                xx = x2;
+                yy = y2;
+            }
+            else
+            {
+                xx = x1 + param * C;
+                yy = y1 + param * D;
+            }
+
+            var dx = x - xx;
+            var dy = y - yy;
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+
     }
 }
