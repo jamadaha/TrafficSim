@@ -99,17 +99,29 @@ namespace TrafficWpf
                     double xDiff = _units[i].ellipse.Margin.Left - xPos;
                     double yDiff = _units[i].ellipse.Margin.Top - yPos;
                     double distance = Math.Sqrt(xDiff * xDiff + yDiff * yDiff);
+                    if (distance < ellipse.Width * 8) {
+                        if (_units[i].currentRoad == currentRoad || currentRoad.connectedRoads.Contains(_units[i].currentRoad)) {
 
-                    if (_units[i].currentRoad == currentRoad)
-                    {
-                        if (distance < ellipse.Height / 2 + _units[i].ellipse.Height / 2) return true;
-                    }
 
-                    if (currentIndex != route.Length - 1)
-                    {
-                        if (_units[i].currentRoad == route[currentIndex + 1])
-                        {
-                            if (distance < ellipse.Height + _units[i].ellipse.Height / 2) return true;
+                            // Check if on same road
+                            if (_units[i].currentRoad == currentRoad)
+                            {
+                                // Check if other point is further ahead on the road
+                                double otherDistanceToEndPoint = Math.Sqrt(Math.Pow(currentRoad.line.X2 - _units[i].ellipse.Margin.Left, 2) + Math.Pow(currentRoad.line.Y2 - _units[i].ellipse.Margin.Top, 2));
+                                double distanceToEndPoint = Math.Sqrt(Math.Pow(currentRoad.line.X2 - ellipse.Margin.Left, 2) + Math.Pow(currentRoad.line.Y2 - ellipse.Margin.Top, 2));
+
+                                if (distanceToEndPoint > otherDistanceToEndPoint)
+                                    if (distance < ellipse.Height / 2 + _units[i].ellipse.Height / 2) return true;
+                            }
+
+                            // Check if on next road
+                            if (currentIndex != route.Length - 1)
+                            {
+                                if (_units[i].currentRoad == route[currentIndex + 1])
+                                {
+                                    if (distance < ellipse.Height + _units[i].ellipse.Height / 2) return true;
+                                }
+                            }
                         }
                     }
                 }
